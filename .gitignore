@@ -41,3 +41,5 @@ secret.txt
 .idea
 .vscode
 .claude
+
+.DS_Store

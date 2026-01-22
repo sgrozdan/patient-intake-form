@@ -24,6 +24,7 @@ RUN poetry config virtualenvs.create false \
 # Create creds file
 RUN mkdir ./.streamlit
 COPY .streamlit/secrets.toml.example ./.streamlit/secrets.toml
+COPY .env.example ./.env
 
 # Expose Streamlit port
 EXPOSE 8501
