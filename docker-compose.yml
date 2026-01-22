@@ -3,6 +3,15 @@ services:
     build: .
     ports:
       - "8501:8501"
+    volumes:
+      - type: bind
+        source: ./.streamlit/secrets.toml
+        target: /app/.streamlit/secrets.toml
+        read_only: true
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
     environment:
       - SERVICE_TOKEN=${SERVICE_TOKEN}
       - CATALOGUE_URL=${CATALOGUE_URL}

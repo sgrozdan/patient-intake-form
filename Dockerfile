@@ -30,7 +30,7 @@ COPY .env.example ./.env
 EXPOSE 8501
 
 # Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Run Streamlit
 CMD ["streamlit", "run", "patient_intake/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
