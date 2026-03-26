@@ -8,7 +8,7 @@ packages = [{include = "patient_intake"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-streamlit = "^1.40.0"
+streamlit = "^1.54.0"
 requests = "^2.32.0"
 captcha = "^0.6.0"
 PyMuPDF = "^1.25.0"
