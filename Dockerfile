@@ -24,12 +24,13 @@ RUN poetry config virtualenvs.create false \
 # Create creds file
 RUN mkdir ./.streamlit
 COPY .streamlit/secrets.toml.example ./.streamlit/secrets.toml
+COPY .env.example ./.env
 
 # Expose Streamlit port
 EXPOSE 8501
 
 # Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Run Streamlit
 CMD ["streamlit", "run", "patient_intake/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

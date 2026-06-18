@@ -1,0 +1,73 @@
+# workflow_dispatch works only on default branch
+name: "PROD deploy"
+
+env:
+  GH_REGISTRY: ghcr.io
+  PROD_HOST: form.pro4eyes.com
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Deploy version
+        required: true
+
+jobs:
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Show inputs"
+        run: echo "Version ${{ github.event.inputs.version }} on host ${{ env.PROD_HOST }}"
+
+      - name: TG notify 1
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ▶︎ PROD Deploy **${{ github.repository }}** STARTED
+            Version **${{ github.event.inputs.version }}**
+            HOST: **${{ env.PROD_HOST }}**
+
+      - name: "Deploying an instance of app in a EC2 VM"
+        id: deployImage
+        uses: appleboy/ssh-action@master
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        with:
+          host: ${{ env.PROD_HOST }}
+          username: ${{ secrets.PROD_HOST_USERNAME }}
+          key: ${{ secrets.PROD_HOST_KEY }}
+          envs: VERSION
+          script_stop: true
+          script: |
+            echo "Version $VERSION"
+            docker pull ${{ env.GH_REGISTRY }}/${{ github.repository }}:$VERSION
+            cd /opt/${{ env.PROD_HOST }}/
+            pwd
+            VERSION=$VERSION docker-compose up -d
+
+      - name: TG notify 1 failure
+        uses: appleboy/telegram-action@master
+        if: failure() && steps.deployImage.outcome == 'failure'
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ❌ PROD Deploy **${{ github.repository }}** FAILED
+            Version **${{ github.event.inputs.version }}**
+            HOST: **${{ env.PROD_HOST }}**
+
+      - name: TG notify 2
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            ✅ PROD Deploy **${{ github.repository }}** COMPLETED
+            Version **${{ github.event.inputs.version }}**
+            HOST: **${{ env.PROD_HOST }}**
