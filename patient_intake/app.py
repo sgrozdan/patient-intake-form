@@ -38,30 +38,47 @@ def main():
     )
 
     st.header("Patient Intake Form")
+    st.caption("Fields marked with \\* are required.")
 
     col1, col2 = st.columns(2)
+
+    # Placeholders rendered next to each field; the submit handler writes
+    # validation errors into the matching spot so messages appear inline.
+    field_ph: dict = {}
 
     # === CLIENT AREA ===
     with col1:
         with st.container(border=True):
             st.subheader("Client Information")
-            owner_name = st.text_input("Full Name (First and Last):")
+            owner_name = st.text_input("Full Name (First and Last): *", key="owner_name")
+            st.caption("First and last name, letters only — e.g. Jane Doe")
+            field_ph["owner_name"] = st.empty()
             sec_owner_name = st.text_input("Full Name of Secondary Contact:")
-            email = st.text_input("Email address:")
-            cell_no = st.text_input("Phone number (10 digits):")
+            email = st.text_input("Email address: *", key="email")
+            st.caption("e.g. name@example.com")
+            field_ph["email"] = st.empty()
+            cell_no = st.text_input("Phone number (10 digits): *", key="cell_no")
+            st.caption("Exactly 10 digits, numbers only — no spaces or dashes (e.g. 5551234567)")
+            field_ph["cell_no"] = st.empty()
             work_no = st.text_input("Work phone:")
             alt_no = st.text_input("Alternative phone:")
             employer = st.text_input("Employer:")
             drive_lic = st.text_input("Driver's License (IF writing check):")
-            owner_address = st.text_input("Address:")
+            owner_address = st.text_input("Address: *", key="owner_address")
+            field_ph["owner_address"] = st.empty()
 
             city_col, state_col, zip_col = st.columns(3)
             with city_col:
-                city = st.text_input("City:")
+                city = st.text_input("City *", placeholder="Des Moines", key="city")
             with state_col:
-                state = st.text_input("State (2-letter):")
+                state = st.text_input("State *", placeholder="IA", max_chars=2, key="state")
             with zip_col:
-                zip_code = st.text_input("Zip Code:")
+                zip_code = st.text_input(
+                    "Zip Code *", placeholder="50309", max_chars=10, key="zip_code"
+                )
+            field_ph["city"] = st.empty()
+            field_ph["state"] = st.empty()
+            field_ph["zip_code"] = st.empty()
 
             st.markdown("**Owner's Date of Birth**")
             dob_col1, dob_col2, dob_col3 = st.columns(3)
@@ -82,10 +99,13 @@ def main():
     with col2:
         with st.container(border=True):
             st.subheader("Pet Information")
-            pet_name = st.text_input("Pet Name:")
+            pet_name = st.text_input("Pet Name: *", key="pet_name")
+            st.caption("Letters and spaces only")
+            field_ph["pet_name"] = st.empty()
             breed_options = sorted(breed_map.keys())
-            breed = st.selectbox("Breed", breed_options)
+            breed = st.selectbox("Breed *", breed_options, key="breed")
             breed_non_listed = st.text_input("Breed (if not listed):")
+            field_ph["breed"] = st.empty()
             color = st.text_input("Color")
             st.markdown("**Patient's Date of Birth**")
             dob_col1, dob_col2, dob_col3 = st.columns(3)
@@ -95,8 +115,12 @@ def main():
                 month = st.selectbox("Month", list(range(1, 13)), key="pet_month")
             with dob_col3:
                 year = st.selectbox("Year", list(range(2000, 2027)), key="pet_year")
-            patient_sex = st.selectbox("Sex", sorted(sex_map.keys()))
-            patient_species = st.selectbox("Species", species_keys, index=canine_index)
+            patient_sex = st.selectbox("Sex *", sorted(sex_map.keys()), key="sex")
+            field_ph["sex"] = st.empty()
+            patient_species = st.selectbox(
+                "Species *", species_keys, index=canine_index, key="species"
+            )
+            field_ph["species"] = st.empty()
             pet_prev_visit = st.selectbox(
                 "Has this pet been at our facility before?", ["Yes", "No"]
             )
@@ -106,9 +130,33 @@ def main():
             clinic_name = st.text_input("Clinic Name")
 
     agree = st.checkbox("I confirm the information is correct.")
+    field_ph["agree"] = st.empty()
     submit_button = st.button("Submit")
 
-    if submit_button:
+    # Validate on every render so empty/invalid required fields are flagged in red
+    # immediately — before the user clicks Submit. The red messages clear as each
+    # field becomes valid.
+    field_errors = _validate(
+        owner_name=owner_name,
+        email=email,
+        cell_no=cell_no,
+        owner_address=owner_address,
+        city=city,
+        state=state,
+        zip_code=zip_code,
+        pet_name=pet_name,
+        breed=breed,
+        breed_non_listed=breed_non_listed,
+        patient_sex=patient_sex,
+        patient_species=patient_species,
+        agree=agree,
+        species_map=species_map,
+        breed_map=breed_map,
+        sex_map=sex_map,
+    )
+    _render_field_errors(field_errors, field_ph)
+
+    if submit_button and not field_errors:
         _handle_submit(
             owner_name=owner_name,
             sec_owner_name=sec_owner_name,
@@ -138,11 +186,130 @@ def main():
             pet_prev_visit=pet_prev_visit,
             doctor=doctor,
             clinic_name=clinic_name,
-            agree=agree,
             species_map=species_map,
             breed_map=breed_map,
             sex_map=sex_map,
         )
+
+
+# Required selectbox fields need a different CSS target than text inputs.
+_SELECT_FIELDS = {"breed", "sex", "species"}
+_INVALID_COLOR = "#ff4b4b"  # Streamlit's default red
+
+
+def _render_field_errors(field_errors: dict, field_ph: dict) -> None:
+    """Render each validation problem as a compact red line plus a red rounded
+    border on the offending field.
+
+    The border is applied via the ``st-key-<key>`` wrapper class Streamlit adds to
+    every keyed widget, so each field is targeted without positional selectors.
+    """
+    css_rules = []
+    for key, message in field_errors.items():
+        placeholder = field_ph.get(key)
+        if placeholder is not None:
+            placeholder.markdown(f":red[⚠ {message}]")
+        if key in _SELECT_FIELDS:
+            css_rules.append(
+                f'.st-key-{key} [data-baseweb="select"] > div '
+                f"{{ border-color:{_INVALID_COLOR} !important; "
+                "border-radius:0.5rem !important; }"
+            )
+        elif key != "agree":  # checkbox: compact text only, no border
+            css_rules.append(
+                f'.st-key-{key} [data-baseweb="input"] '
+                f"{{ border:1px solid {_INVALID_COLOR} !important; "
+                "border-radius:0.5rem !important; }"
+            )
+    if css_rules:
+        st.markdown("<style>" + "".join(css_rules) + "</style>", unsafe_allow_html=True)
+
+
+def _validate(
+    owner_name: str,
+    email: str,
+    cell_no: str,
+    owner_address: str,
+    city: str,
+    state: str,
+    zip_code: str,
+    pet_name: str,
+    breed: str,
+    breed_non_listed: str,
+    patient_sex: str,
+    patient_species: str,
+    agree: bool,
+    species_map: dict,
+    breed_map: dict,
+    sex_map: dict,
+) -> dict:
+    """Validate the form and return a {field key -> message} dict of problems.
+
+    Run on every render so empty/invalid required fields are flagged inline,
+    not only after the user clicks Submit.
+    """
+    # field key -> message; each message is rendered inline next to its field.
+    field_errors: dict[str, str] = {}
+
+    species_id = species_map.get(patient_species)
+    breed_id = breed_map.get(breed)
+    sex_id = sex_map.get(patient_sex)
+
+    # --- Owner information ---
+    if not owner_name.strip():
+        field_errors["owner_name"] = "Full Name is required."
+    elif not re.fullmatch(r"[A-Za-z'-]+ [A-Za-z'-]+([A-Za-z'-]+)*", owner_name):
+        field_errors["owner_name"] = (
+            "Enter first and last name using letters only — e.g. Jane Doe."
+        )
+
+    if not email.strip():
+        field_errors["email"] = "Email address is required."
+    elif not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        field_errors["email"] = "Enter a valid email address — e.g. name@example.com."
+
+    if not cell_no.strip():
+        field_errors["cell_no"] = "Phone number is required."
+    elif not re.fullmatch(r"\d{10}", cell_no):
+        field_errors["cell_no"] = (
+            "Phone must be exactly 10 digits, numbers only — e.g. 5551234567 "
+            "(no spaces, dashes, or parentheses)."
+        )
+
+    if not owner_address.strip():
+        field_errors["owner_address"] = "Address is required."
+
+    if not city.strip():
+        field_errors["city"] = "City is required."
+
+    if not state.strip():
+        field_errors["state"] = "State is required."
+    elif not re.fullmatch(r"[A-Za-z]{2}", state):
+        field_errors["state"] = "Use the 2-letter state code — e.g. IA."
+
+    if not zip_code.strip():
+        field_errors["zip_code"] = "Zip Code is required."
+    elif not re.fullmatch(r"\d{5}(-\d{4})?", zip_code.strip()):
+        field_errors["zip_code"] = "Enter a 5-digit ZIP code — e.g. 50309."
+
+    # --- Pet information ---
+    if not pet_name.strip():
+        field_errors["pet_name"] = "Pet Name is required."
+    elif not re.fullmatch(r"[A-Za-z ]+", pet_name):
+        field_errors["pet_name"] = "Pet Name can contain letters and spaces only."
+
+    if species_id is None:
+        field_errors["species"] = "Please select a Species."
+    if sex_id is None:
+        field_errors["sex"] = "Please select Sex."
+    if breed_id is None and not breed_non_listed.strip():
+        field_errors["breed"] = "Select a Breed or fill 'Breed (if not listed)'."
+
+    # --- Confirmation ---
+    if not agree:
+        field_errors["agree"] = "Please check the confirmation box."
+
+    return field_errors
 
 
 def _handle_submit(
@@ -174,53 +341,16 @@ def _handle_submit(
     pet_prev_visit: str,
     doctor: str,
     clinic_name: str,
-    agree: bool,
     species_map: dict,
     breed_map: dict,
     sex_map: dict,
 ):
-    """Handle form submission."""
-    all_valid = True
-    st.write("Form submitted")
-
-    if not re.fullmatch(r"[A-Za-z'-]+ [A-Za-z'-]+([A-Za-z'-]+)*", owner_name):
-        st.warning("Please enter your full name (first and last).")
-        all_valid = False
-
-    if not re.fullmatch(r"\d{10}", cell_no):
-        st.warning("Please enter a valid phone number (10 digits only).")
-        all_valid = False
-
-    if not re.fullmatch(r"[A-Za-z ]+", pet_name):
-        st.warning("Please enter a valid pet name (letters and spaces only).")
-        all_valid = False
-
-    if not agree:
-        st.warning("Please check the confirmation box.")
-        all_valid = False
-
-    if not zip_code:
-        all_valid = False
-
-    if not all_valid:
-        return
-
-    first, last = owner_name.split(" ", 1)
-
-    # Validate dropdowns to ensure IDs exist
+    """Submit a validated form: build the payload, call the API, email the PDF."""
     species_id = species_map.get(patient_species)
     breed_id = breed_map.get(breed)
     sex_id = sex_map.get(patient_sex)
 
-    if species_id is None:
-        st.error("Please select a Species.")
-        st.stop()
-    if sex_id is None:
-        st.error("Please select Sex.")
-        st.stop()
-    if breed_id is None and not breed_non_listed.strip():
-        st.error("Please select a Breed or fill 'Breed (if not listed)'.")
-        st.stop()
+    first, last = owner_name.split(" ", 1)
 
     payload = {
         "company_id": 1,
