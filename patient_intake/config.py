@@ -4,10 +4,13 @@ Supports both environment variables (for Docker/AWS) and Streamlit secrets (for 
 Environment variables take precedence.
 """
 
+import logging
 import os
 from pathlib import Path
 
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 
 def _get_config(env_key: str, secrets_section: str, secrets_key: str) -> str:
@@ -49,11 +52,13 @@ def _resolve_smtp_login(email_config: dict) -> dict:
     through the environment even when the rest of the config comes from
     secrets.toml; both fall back to the sender address.
     """
-    login = (
-        os.environ.get("SMTP_LOGIN")
-        or email_config.get("smtp_login")
-        or email_config["sender_email"]
-    )
+    if os.environ.get("SMTP_LOGIN"):
+        source, login = "SMTP_LOGIN env var", os.environ["SMTP_LOGIN"]
+    elif email_config.get("smtp_login"):
+        source, login = "smtp_login in secrets.toml", email_config["smtp_login"]
+    else:
+        source, login = "sender address (no SMTP_LOGIN set)", email_config["sender_email"]
+    logger.info("SMTP login taken from %s", source)
     return {**email_config, "smtp_login": login}
 
 
@@ -75,8 +80,16 @@ def get_email_config() -> dict:
 
     # If all required env vars are set, use them
     if all(env_config.values()):
+        logger.info("Email config loaded from environment variables")
         env_config["smtp_port"] = int(env_config["smtp_port"])
         return _resolve_smtp_login(env_config)
+
+    # The dict keys match the env var names, lowercased.
+    unset = [key.upper() for key, value in env_config.items() if not value]
+    logger.info(
+        "Email config loaded from secrets.toml: env vars not fully set (missing %s)",
+        ", ".join(unset),
+    )
 
     # Fall back to Streamlit secrets
     try:

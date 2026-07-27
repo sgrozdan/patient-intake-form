@@ -22,6 +22,8 @@ services:
       - SENDER_EMAIL=${SENDER_EMAIL}
       - SENDER_PASSWORD=${SENDER_PASSWORD}
       - RECIPIENT_EMAIL=${RECIPIENT_EMAIL}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SMTP_DEBUG=${SMTP_DEBUG:-}
     env_file:
       - .env
     restart: unless-stopped

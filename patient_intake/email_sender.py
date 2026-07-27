@@ -1,15 +1,30 @@
 """Email sending functionality for patient intake forms."""
 
+import logging
+import os
 import smtplib
 from email.message import EmailMessage
 
 import streamlit as st
 
 from patient_intake.config import get_email_config
+from patient_intake.logging_config import mask
 
 # Without a timeout a dropped connection blocks the form until the user retries
 # and creates a duplicate patient.
 SMTP_TIMEOUT = 30
+
+logger = logging.getLogger(__name__)
+
+
+def _smtp_debug_level() -> int:
+    """Return smtplib's debug level, enabled with SMTP_DEBUG.
+
+    The trace shows the whole SMTP dialogue, including the accepting response
+    with the provider's message id - and the AUTH exchange, which carries the
+    base64-encoded credentials. Hence opt-in only.
+    """
+    return 1 if os.environ.get("SMTP_DEBUG", "").lower() in ("1", "true", "yes") else 0
 
 
 def label_from_id(mapping: dict, _id, default: str = "") -> str:
@@ -97,13 +112,37 @@ def send_email_with_pdf(
         msg.add_attachment(
             pdf_bytes, maintype="application", subtype="pdf", filename=filename
         )
+        logger.info(
+            "Sending intake email for %r via %s:%s, login %s, from %s to %s",
+            patient_name,
+            email_config["smtp_server"],
+            email_config["smtp_port"],
+            mask(email_config["smtp_login"]),
+            email_config["sender_email"],
+            email_config["recipient_email"],
+        )
+        debug_level = _smtp_debug_level()
+        if debug_level:
+            logger.warning(
+                "SMTP_DEBUG is on: the protocol trace on stderr includes the "
+                "base64-encoded credentials. Turn it off once diagnosed."
+            )
         with smtplib.SMTP(
             email_config["smtp_server"], email_config["smtp_port"], timeout=SMTP_TIMEOUT
         ) as server:
+            server.set_debuglevel(debug_level)
             server.starttls()
             server.login(email_config["smtp_login"], email_config["sender_password"])
-            server.send_message(msg)
+            refused = server.send_message(msg)
+        if refused:
+            # The server took the message but dropped recipients from it.
+            logger.warning("SMTP server refused recipients: %s", refused)
+        else:
+            logger.info(
+                "Intake email for %r accepted by %s", patient_name, email_config["smtp_server"]
+            )
         return True
-    except Exception as e:
-        st.error(f"Email compose/send failed: {e}")
+    except Exception:
+        logger.exception("Sending intake email failed")
+        st.error("Email delivery failed - the form was saved, please notify the clinic.")
         return False

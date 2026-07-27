@@ -1,5 +1,6 @@
 """Main Streamlit application for patient intake form."""
 
+import logging
 import re
 
 import streamlit as st
@@ -7,11 +8,16 @@ import streamlit as st
 from patient_intake.api_client import fetch_reference_data, submit_patient
 from patient_intake.captcha import check_captcha
 from patient_intake.email_sender import send_email_with_pdf
+from patient_intake.logging_config import configure_logging
 from patient_intake.pdf_generator import fill_pdf_with_fitz
+
+logger = logging.getLogger(__name__)
 
 
 def main():
     """Main entry point for the Streamlit application."""
+    configure_logging()
+
     # CAPTCHA check first
     check_captcha()
 
@@ -299,6 +305,9 @@ def _handle_submit(
             if not ok:
                 st.warning("Patient saved; email failed (see error above).")
 
+            logger.info(
+                "Patient created: id=%s, email sent=%s", result.get("patient_id", "?"), ok
+            )
             st.success(f"Patient uploaded successfully! ID: {result.get('patient_id', '?')}")
             st.balloons()
         else:
@@ -306,6 +315,7 @@ def _handle_submit(
             st.stop()
 
     except Exception as e:
+        logger.exception("Patient submission failed")
         st.error(f"Request failed: {e}")
         st.stop()
 

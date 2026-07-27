@@ -107,6 +107,8 @@ docker build -t patient-intake-form .
 | `SENDER_EMAIL` | Email sender address (the `From` header) |
 | `SENDER_PASSWORD` | SMTP password/app password |
 | `RECIPIENT_EMAIL` | Email recipient address |
+| `LOG_LEVEL` | Log verbosity (optional, defaults to `INFO`) |
+| `SMTP_DEBUG` | Log the SMTP dialogue (optional, off by default) |
 
 `SMTP_LOGIN` exists because not every provider authenticates with the sender
 address. Amazon SES, for example, uses SMTP credentials whose username is a
@@ -142,6 +144,34 @@ set, not just `SMTP_LOGIN`.
    secret access key — generate them for the same region as `SMTP_SERVER`.
 3. While the SES account is in sandbox mode, `RECIPIENT_EMAIL` has to be a
    verified identity too, otherwise sending fails with `554 Message rejected`.
+
+### Troubleshooting email delivery
+
+The application logs to stdout, so the container output is the place to look:
+
+```bash
+docker compose logs -f patient-intake        # or: docker logs -f <container>
+```
+
+Every submission logs which config source was used, the SMTP server, the login
+(masked) and whether the server accepted the message:
+
+```
+INFO patient_intake.config: Email config loaded from environment variables
+INFO patient_intake.config: SMTP login taken from SMTP_LOGIN env var
+INFO patient_intake.email_sender: Sending intake email for 'Fluffy' via email-smtp.us-east-1.amazonaws.com:587, login AKIA***, from sender@... to recipient@...
+INFO patient_intake.email_sender: Intake email for 'Fluffy' accepted by email-smtp.us-east-1.amazonaws.com
+```
+
+`Email config loaded from secrets.toml` means the env vars were not fully set
+and the values from `secrets.toml` were used instead — the log line lists which
+variables were missing. Send failures are logged with a full traceback, while
+the form only shows a generic message.
+
+If the server accepts the message but it never arrives, set `SMTP_DEBUG=1` and
+restart: the full SMTP dialogue, including the provider's response with the
+message id, goes to the container's stderr. Turn it back off afterwards — that
+trace also contains the AUTH exchange with the base64-encoded credentials.
 
 ## Project Structure
 
