@@ -103,9 +103,45 @@ docker build -t patient-intake-form .
 | `PATIENT_ADD_URL` | API endpoint for patient submission |
 | `SMTP_SERVER` | SMTP server address |
 | `SMTP_PORT` | SMTP port (usually 587) |
-| `SENDER_EMAIL` | Email sender address |
-| `SENDER_PASSWORD` | Email sender password/app password |
+| `SMTP_LOGIN` | SMTP username (optional, defaults to `SENDER_EMAIL`) |
+| `SENDER_EMAIL` | Email sender address (the `From` header) |
+| `SENDER_PASSWORD` | SMTP password/app password |
 | `RECIPIENT_EMAIL` | Email recipient address |
+
+`SMTP_LOGIN` exists because not every provider authenticates with the sender
+address. Amazon SES, for example, uses SMTP credentials whose username is a
+credential id, while the `From` header must be a separately verified identity:
+
+```
+SMTP_SERVER=email-smtp.us-east-1.amazonaws.com
+SMTP_PORT=587
+SMTP_LOGIN=AKIAIOSFODNN7EXAMPLE
+SENDER_PASSWORD=<SES SMTP password>
+SENDER_EMAIL=verified-sender@your-domain.com
+```
+
+Leave `SMTP_LOGIN` unset for providers like Gmail, where the login is the
+sender address.
+
+The other email variables are all-or-nothing: if any of them is missing, the
+whole email config is read from `secrets.toml` instead. `SMTP_LOGIN` is the
+exception — it always overrides the login, whichever source is used. So a typo
+in one of the other variables leaves you with an SES login against the server
+from `secrets.toml`, which fails authentication: check that the whole group is
+set, not just `SMTP_LOGIN`.
+
+### Switching the deployment to Amazon SES
+
+1. Add `SMTP_LOGIN` and the SES values to `/opt/<host>/.env` on the target host.
+   The deploy workflow only pulls the image and runs `docker-compose up -d`
+   against the compose file that already lives on the host, so changes to the
+   `docker-compose.yml` in this repository do not reach the server on their own:
+   make sure the host's compose file passes `SMTP_LOGIN` through (its `env_file:
+   .env` already does, if present).
+2. SES SMTP credentials are region-specific and the SMTP password is not an IAM
+   secret access key — generate them for the same region as `SMTP_SERVER`.
+3. While the SES account is in sandbox mode, `RECIPIENT_EMAIL` has to be a
+   verified identity too, otherwise sending fails with `554 Message rejected`.
 
 ## Project Structure
 

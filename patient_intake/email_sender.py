@@ -7,6 +7,10 @@ import streamlit as st
 
 from patient_intake.config import get_email_config
 
+# Without a timeout a dropped connection blocks the form until the user retries
+# and creates a duplicate patient.
+SMTP_TIMEOUT = 30
+
 
 def label_from_id(mapping: dict, _id, default: str = "") -> str:
     """Invert the mapping safely to get the label for a given id."""
@@ -79,21 +83,25 @@ def send_email_with_pdf(
     sex_map: dict,
 ) -> bool:
     """Send email with PDF attachment."""
-    email_config = get_email_config()
-    msg = EmailMessage()
-    msg["Subject"] = f"New Patient Intake: {patient_name}"
-    msg["From"] = email_config["sender_email"]
-    msg["To"] = email_config["recipient_email"]
     try:
+        # Inside the try: a misconfiguration must be reported as a failed email,
+        # not as a failed submission - the patient has already been created.
+        email_config = get_email_config()
+        msg = EmailMessage()
+        msg["Subject"] = f"New Patient Intake: {patient_name}"
+        msg["From"] = email_config["sender_email"]
+        msg["To"] = email_config["recipient_email"]
         msg.set_content(
             format_email_body(payload, extra_fields, species_map, breed_map, sex_map)
         )
         msg.add_attachment(
             pdf_bytes, maintype="application", subtype="pdf", filename=filename
         )
-        with smtplib.SMTP(email_config["smtp_server"], email_config["smtp_port"]) as server:
+        with smtplib.SMTP(
+            email_config["smtp_server"], email_config["smtp_port"], timeout=SMTP_TIMEOUT
+        ) as server:
             server.starttls()
-            server.login(email_config["sender_email"], email_config["sender_password"])
+            server.login(email_config["smtp_login"], email_config["sender_password"])
             server.send_message(msg)
         return True
     except Exception as e:
