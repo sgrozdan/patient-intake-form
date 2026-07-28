@@ -43,3 +43,8 @@ secret.txt
 .claude
 
 .DS_Store
+
+# Playwright MCP artifacts
+.playwright-mcp/
+*.png
+!templates/*.png

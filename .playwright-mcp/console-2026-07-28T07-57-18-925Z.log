@@ -1,9 +1,0 @@
-[  575292ms] [WARNING] WebSocket onclose @ https://test.form.pro4eyes.com/static/js/index.3bHSf9gi.js:146
-[  577180ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://test.form.pro4eyes.com/_stcore/health:0
-[  577181ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://test.form.pro4eyes.com/_stcore/host-config:0
-[  577555ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://test.form.pro4eyes.com/_stcore/health:0
-[  577556ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://test.form.pro4eyes.com/_stcore/host-config:0
-[  577962ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://test.form.pro4eyes.com/_stcore/health:0
-[  577971ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://test.form.pro4eyes.com/_stcore/host-config:0
-[  578624ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://test.form.pro4eyes.com/_stcore/health:0
-[  578625ms] [ERROR] Failed to load resource: the server responded with a status of 502 () @ https://test.form.pro4eyes.com/_stcore/host-config:0
