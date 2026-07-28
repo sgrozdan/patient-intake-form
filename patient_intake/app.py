@@ -186,29 +186,34 @@ def _handle_submit(
     sex_map: dict,
 ):
     """Handle form submission."""
-    all_valid = True
     st.write("Form submitted")
+    logger.info("Form submitted")
+
+    invalid = []
 
     if not re.fullmatch(r"[A-Za-z'-]+ [A-Za-z'-]+([A-Za-z'-]+)*", owner_name):
         st.warning("Please enter your full name (first and last).")
-        all_valid = False
+        invalid.append("owner_name")
 
     if not re.fullmatch(r"\d{10}", cell_no):
         st.warning("Please enter a valid phone number (10 digits only).")
-        all_valid = False
+        invalid.append("phone")
 
     if not re.fullmatch(r"[A-Za-z ]+", pet_name):
         st.warning("Please enter a valid pet name (letters and spaces only).")
-        all_valid = False
+        invalid.append("pet_name")
 
     if not agree:
         st.warning("Please check the confirmation box.")
-        all_valid = False
+        invalid.append("confirmation")
 
     if not zip_code:
-        all_valid = False
+        st.warning("Please enter your ZIP code.")
+        invalid.append("zip_code")
 
-    if not all_valid:
+    if invalid:
+        # Without this the form just stops: no error, no email, nothing logged.
+        logger.info("Submission rejected by validation: %s", ", ".join(invalid))
         return
 
     first, last = owner_name.split(" ", 1)
@@ -219,12 +224,15 @@ def _handle_submit(
     sex_id = sex_map.get(patient_sex)
 
     if species_id is None:
+        logger.info("Submission stopped: no species selected")
         st.error("Please select a Species.")
         st.stop()
     if sex_id is None:
+        logger.info("Submission stopped: no sex selected")
         st.error("Please select Sex.")
         st.stop()
     if breed_id is None and not breed_non_listed.strip():
+        logger.info("Submission stopped: no breed selected or entered")
         st.error("Please select a Breed or fill 'Breed (if not listed)'.")
         st.stop()
 

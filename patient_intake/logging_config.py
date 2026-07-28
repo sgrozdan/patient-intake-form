@@ -24,8 +24,11 @@ def configure_logging() -> None:
 
     Safe to call repeatedly: Streamlit reruns the script on every interaction.
     """
+    from patient_intake import __version__
+
     logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(_level_from_env())
+    level = _level_from_env()
+    logger.setLevel(level)
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter(LOG_FORMAT))
@@ -33,6 +36,11 @@ def configure_logging() -> None:
         # Our own handler already writes to stdout; propagating would duplicate
         # every record through Streamlit's root handler.
         logger.propagate = False
+        # Printed once per process: tells from the container output alone which
+        # version is running and whether these logs can be trusted to be complete.
+        logger.info(
+            "patient-intake %s started, logging at %s", __version__, logging.getLevelName(level)
+        )
 
 
 def mask(value: str) -> str:

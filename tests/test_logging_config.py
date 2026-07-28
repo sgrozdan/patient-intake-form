@@ -38,6 +38,16 @@ def test_configure_logging_is_idempotent(clean_logger):
     assert len(clean_logger.handlers) == 1
 
 
+def test_configure_logging_announces_the_running_version(clean_logger, capsys):
+    """The container output alone must show which version produced it."""
+    from patient_intake import __version__
+
+    logging_config.configure_logging()
+
+    # Read stdout, not caplog: the banner goes through the handler just added.
+    assert f"patient-intake {__version__} started, logging at INFO" in capsys.readouterr().out
+
+
 def test_configure_logging_honours_log_level(clean_logger, monkeypatch):
     """LOG_LEVEL selects the verbosity."""
     monkeypatch.setenv("LOG_LEVEL", "debug")
