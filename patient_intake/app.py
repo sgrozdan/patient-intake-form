@@ -1,6 +1,5 @@
 """Main Streamlit application for patient intake form."""
 
-import logging
 import re
 
 import streamlit as st
@@ -8,10 +7,11 @@ import streamlit as st
 from patient_intake.api_client import fetch_reference_data, submit_patient
 from patient_intake.captcha import check_captcha
 from patient_intake.email_sender import send_email_with_pdf
-from patient_intake.logging_config import configure_logging
+from patient_intake.logging_config import configure_logging, get_logger
 from patient_intake.pdf_generator import fill_pdf_with_fitz
 
-logger = logging.getLogger(__name__)
+# Not getLogger(__name__): Streamlit runs this file as __main__.
+logger = get_logger("app")
 
 
 def main():
@@ -45,74 +45,81 @@ def main():
 
     st.header("Patient Intake Form")
 
-    col1, col2 = st.columns(2)
+    # A form, not loose widgets: outside a form a text input only reaches the
+    # server on blur or Enter, so browser autofill - which fills every field at
+    # once and focuses none - left the submission looking empty. A form sends
+    # the current value of every widget when it is submitted.
+    with st.form("intake_form"):
+        col1, col2 = st.columns(2)
 
-    # === CLIENT AREA ===
-    with col1:
-        with st.container(border=True):
-            st.subheader("Client Information")
-            owner_name = st.text_input("Full Name (First and Last):")
-            sec_owner_name = st.text_input("Full Name of Secondary Contact:")
-            email = st.text_input("Email address:")
-            cell_no = st.text_input("Phone number (10 digits):")
-            work_no = st.text_input("Work phone:")
-            alt_no = st.text_input("Alternative phone:")
-            employer = st.text_input("Employer:")
-            drive_lic = st.text_input("Driver's License (IF writing check):")
-            owner_address = st.text_input("Address:")
+        # === CLIENT AREA ===
+        with col1:
+            with st.container(border=True):
+                st.subheader("Client Information")
+                owner_name = st.text_input("Full Name (First and Last):")
+                sec_owner_name = st.text_input("Full Name of Secondary Contact:")
+                email = st.text_input("Email address:")
+                cell_no = st.text_input("Phone number (10 digits):")
+                work_no = st.text_input("Work phone:")
+                alt_no = st.text_input("Alternative phone:")
+                employer = st.text_input("Employer:")
+                drive_lic = st.text_input("Driver's License (IF writing check):")
+                owner_address = st.text_input("Address:")
 
-            city_col, state_col, zip_col = st.columns(3)
-            with city_col:
-                city = st.text_input("City:")
-            with state_col:
-                state = st.text_input("State (2-letter):")
-            with zip_col:
-                zip_code = st.text_input("Zip Code:")
+                city_col, state_col, zip_col = st.columns(3)
+                with city_col:
+                    city = st.text_input("City:")
+                with state_col:
+                    state = st.text_input("State (2-letter):")
+                with zip_col:
+                    zip_code = st.text_input("Zip Code:")
 
-            st.markdown("**Owner's Date of Birth**")
-            dob_col1, dob_col2, dob_col3 = st.columns(3)
-            with dob_col1:
-                owner_day = st.selectbox("Day", list(range(1, 32)))
-            with dob_col2:
-                owner_month = st.selectbox("Month", list(range(1, 13)))
-            with dob_col3:
-                owner_year = st.selectbox("Year", list(range(1920, 2010)))
+                st.markdown("**Owner's Date of Birth**")
+                dob_col1, dob_col2, dob_col3 = st.columns(3)
+                with dob_col1:
+                    owner_day = st.selectbox("Day", list(range(1, 32)))
+                with dob_col2:
+                    owner_month = st.selectbox("Month", list(range(1, 13)))
+                with dob_col3:
+                    owner_year = st.selectbox("Year", list(range(1920, 2010)))
 
-            prev_visit = st.selectbox("Have you been to our facility before?", ["Yes", "No"])
+                prev_visit = st.selectbox(
+                    "Have you been to our facility before?", ["Yes", "No"]
+                )
 
-    # === ADD CANINE INDEX FOR SPECIES ===
-    species_keys = sorted(species_map.keys())
-    canine_index = species_keys.index("Canine") if "Canine" in species_keys else 0
+        # === ADD CANINE INDEX FOR SPECIES ===
+        species_keys = sorted(species_map.keys())
+        canine_index = species_keys.index("Canine") if "Canine" in species_keys else 0
 
-    # === PATIENT AREA ===
-    with col2:
-        with st.container(border=True):
-            st.subheader("Pet Information")
-            pet_name = st.text_input("Pet Name:")
-            breed_options = sorted(breed_map.keys())
-            breed = st.selectbox("Breed", breed_options)
-            breed_non_listed = st.text_input("Breed (if not listed):")
-            color = st.text_input("Color")
-            st.markdown("**Patient's Date of Birth**")
-            dob_col1, dob_col2, dob_col3 = st.columns(3)
-            with dob_col1:
-                day = st.selectbox("Day", list(range(1, 32)), key="pet_day")
-            with dob_col2:
-                month = st.selectbox("Month", list(range(1, 13)), key="pet_month")
-            with dob_col3:
-                year = st.selectbox("Year", list(range(2000, 2027)), key="pet_year")
-            patient_sex = st.selectbox("Sex", sorted(sex_map.keys()))
-            patient_species = st.selectbox("Species", species_keys, index=canine_index)
-            pet_prev_visit = st.selectbox(
-                "Has this pet been at our facility before?", ["Yes", "No"]
-            )
+        # === PATIENT AREA ===
+        with col2:
+            with st.container(border=True):
+                st.subheader("Pet Information")
+                pet_name = st.text_input("Pet Name:")
+                breed_options = sorted(breed_map.keys())
+                breed = st.selectbox("Breed", breed_options)
+                breed_non_listed = st.text_input("Breed (if not listed):")
+                color = st.text_input("Color")
+                st.markdown("**Patient's Date of Birth**")
+                dob_col1, dob_col2, dob_col3 = st.columns(3)
+                with dob_col1:
+                    day = st.selectbox("Day", list(range(1, 32)), key="pet_day")
+                with dob_col2:
+                    month = st.selectbox("Month", list(range(1, 13)), key="pet_month")
+                with dob_col3:
+                    year = st.selectbox("Year", list(range(2000, 2027)), key="pet_year")
+                patient_sex = st.selectbox("Sex", sorted(sex_map.keys()))
+                patient_species = st.selectbox("Species", species_keys, index=canine_index)
+                pet_prev_visit = st.selectbox(
+                    "Has this pet been at our facility before?", ["Yes", "No"]
+                )
 
-            # PRIMARY CARE VETERINARIAN INFO
-            doctor = st.text_input("Doctor")
-            clinic_name = st.text_input("Clinic Name")
+                # PRIMARY CARE VETERINARIAN INFO
+                doctor = st.text_input("Doctor")
+                clinic_name = st.text_input("Clinic Name")
 
-    agree = st.checkbox("I confirm the information is correct.")
-    submit_button = st.button("Submit")
+        agree = st.checkbox("I confirm the information is correct.")
+        submit_button = st.form_submit_button("Submit")
 
     if submit_button:
         _handle_submit(

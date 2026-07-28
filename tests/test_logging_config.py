@@ -66,6 +66,25 @@ def test_configure_logging_ignores_unknown_log_level(clean_logger, monkeypatch):
     assert clean_logger.level == logging.INFO
 
 
+def test_get_logger_stays_inside_the_configured_namespace():
+    """Only records under this namespace reach the configured handler."""
+    assert logging_config.get_logger("app").name == "patient_intake.app"
+
+
+def test_entry_point_does_not_take_its_logger_name_from_dunder_name():
+    """Streamlit runs app.py as __main__, which would escape the namespace.
+
+    A regression here is invisible under pytest, where app.py is imported as a
+    module and __name__ happens to be right, so guard the source itself.
+    """
+    from pathlib import Path
+
+    from patient_intake import app
+
+    assert "logger = logging.getLogger" not in Path(app.__file__).read_text()
+    assert app.logger.name == "patient_intake.app"
+
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [

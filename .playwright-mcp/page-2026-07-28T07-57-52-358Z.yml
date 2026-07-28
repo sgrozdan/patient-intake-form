@@ -1,0 +1,167 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e6]:
+    - button [ref=f1e11] [cursor=pointer]
+  - generic [ref=f1e15]:
+    - heading "Patient Intake Form" [level=2] [ref=f1e48]
+    - generic [ref=f1e51]:
+      - generic [ref=f1e55]:
+        - heading "Client Information" [level=3] [ref=f1e60]
+        - generic [ref=f1e63]:
+          - paragraph [ref=f1e66]: "Full Name (First and Last):"
+          - textbox "Full Name (First and Last):" [ref=f1e69]:
+            - /placeholder: ""
+        - generic [ref=f1e71]:
+          - paragraph [ref=f1e74]: "Full Name of Secondary Contact:"
+          - textbox "Full Name of Secondary Contact:" [ref=f1e77]:
+            - /placeholder: ""
+        - generic [ref=f1e79]:
+          - paragraph [ref=f1e82]: "Email address:"
+          - textbox "Email address:" [ref=f1e85]:
+            - /placeholder: ""
+        - generic [ref=f1e87]:
+          - paragraph [ref=f1e90]: "Phone number (10 digits):"
+          - textbox "Phone number (10 digits):" [ref=f1e93]:
+            - /placeholder: ""
+        - generic [ref=f1e95]:
+          - paragraph [ref=f1e98]: "Work phone:"
+          - textbox "Work phone:" [ref=f1e101]:
+            - /placeholder: ""
+        - generic [ref=f1e103]:
+          - paragraph [ref=f1e106]: "Alternative phone:"
+          - textbox "Alternative phone:" [ref=f1e109]:
+            - /placeholder: ""
+        - generic [ref=f1e111]:
+          - paragraph [ref=f1e114]: "Employer:"
+          - textbox "Employer:" [ref=f1e117]:
+            - /placeholder: ""
+        - generic [ref=f1e119]:
+          - paragraph [ref=f1e122]: "Driver's License (IF writing check):"
+          - textbox "Driver's License (IF writing check):" [ref=f1e125]:
+            - /placeholder: ""
+        - generic [ref=f1e127]:
+          - paragraph [ref=f1e130]: "Address:"
+          - textbox "Address:" [ref=f1e133]:
+            - /placeholder: ""
+        - generic [ref=f1e135]:
+          - generic [ref=f1e139]:
+            - paragraph [ref=f1e142]: "City:"
+            - textbox "City:" [ref=f1e145]:
+              - /placeholder: ""
+          - generic [ref=f1e149]:
+            - paragraph [ref=f1e152]: "State (2-letter):"
+            - textbox "State (2-letter):" [ref=f1e155]:
+              - /placeholder: ""
+          - generic [ref=f1e159]:
+            - paragraph [ref=f1e162]: "Zip Code:"
+            - textbox "Zip Code:" [ref=f1e165]:
+              - /placeholder: ""
+        - paragraph [ref=f1e170]:
+          - strong [ref=f1e171]: Owner's Date of Birth
+        - generic [ref=f1e173]:
+          - generic [ref=f1e177]:
+            - paragraph [ref=f1e180]: Day
+            - generic [ref=f1e182]:
+              - generic [ref=f1e183]:
+                - generic [ref=f1e184]: "1"
+                - combobox "Selected 1. Day" [ref=f1e186]
+              - img "open" [ref=f1e188]
+          - generic [ref=f1e193]:
+            - paragraph [ref=f1e196]: Month
+            - generic [ref=f1e198]:
+              - generic [ref=f1e199]:
+                - generic [ref=f1e200]: "1"
+                - combobox "Selected 1. Month" [ref=f1e202]
+              - img "open" [ref=f1e204]
+          - generic [ref=f1e209]:
+            - paragraph [ref=f1e212]: Year
+            - generic [ref=f1e214]:
+              - generic [ref=f1e215]:
+                - generic [ref=f1e216]: "1920"
+                - combobox "Selected 1920. Year" [ref=f1e218]
+              - img "open" [ref=f1e220]
+        - generic [ref=f1e223]:
+          - paragraph [ref=f1e226]: Have you been to our facility before?
+          - generic [ref=f1e228]:
+            - generic [ref=f1e229]:
+              - generic [ref=f1e230]: "Yes"
+              - combobox "Selected Yes. Have you been to our facility before?" [ref=f1e232]
+            - img "open" [ref=f1e234]
+      - generic [ref=f1e239]:
+        - heading "Pet Information" [level=3] [ref=f1e244]
+        - generic [ref=f1e247]:
+          - paragraph [ref=f1e250]: "Pet Name:"
+          - textbox "Pet Name:" [ref=f1e253]:
+            - /placeholder: ""
+        - generic [ref=f1e255]:
+          - paragraph [ref=f1e258]: Breed
+          - generic [ref=f1e260]:
+            - generic [ref=f1e261]:
+              - generic [ref=f1e262]: Aatu Tamaskan
+              - combobox "Selected Aatu Tamaskan. Breed" [ref=f1e264]
+            - img "open" [ref=f1e266]
+        - generic [ref=f1e269]:
+          - paragraph [ref=f1e272]: "Breed (if not listed):"
+          - textbox "Breed (if not listed):" [ref=f1e275]:
+            - /placeholder: ""
+        - generic [ref=f1e277]:
+          - paragraph [ref=f1e280]: Color
+          - textbox "Color" [ref=f1e283]:
+            - /placeholder: ""
+        - paragraph [ref=f1e288]:
+          - strong [ref=f1e289]: Patient's Date of Birth
+        - generic [ref=f1e291]:
+          - generic [ref=f1e295]:
+            - paragraph [ref=f1e298]: Day
+            - generic [ref=f1e300]:
+              - generic [ref=f1e301]:
+                - generic [ref=f1e302]: "1"
+                - combobox "Selected 1. Day" [ref=f1e304]
+              - img "open" [ref=f1e306]
+          - generic [ref=f1e311]:
+            - paragraph [ref=f1e314]: Month
+            - generic [ref=f1e316]:
+              - generic [ref=f1e317]:
+                - generic [ref=f1e318]: "1"
+                - combobox "Selected 1. Month" [ref=f1e320]
+              - img "open" [ref=f1e322]
+          - generic [ref=f1e327]:
+            - paragraph [ref=f1e330]: Year
+            - generic [ref=f1e332]:
+              - generic [ref=f1e333]:
+                - generic [ref=f1e334]: "2000"
+                - combobox "Selected 2000. Year" [ref=f1e336]
+              - img "open" [ref=f1e338]
+        - generic [ref=f1e341]:
+          - paragraph [ref=f1e344]: Sex
+          - generic [ref=f1e346]:
+            - generic [ref=f1e347]:
+              - generic [ref=f1e348]: Castrated male
+              - combobox "Selected Castrated male. Sex" [ref=f1e350]
+            - img "open" [ref=f1e352]
+        - generic [ref=f1e355]:
+          - paragraph [ref=f1e358]: Species
+          - generic [ref=f1e360]:
+            - generic [ref=f1e361]:
+              - generic [ref=f1e362]: Canine
+              - combobox "Selected Canine. Species" [ref=f1e364]
+            - img "open" [ref=f1e366]
+        - generic [ref=f1e369]:
+          - paragraph [ref=f1e372]: Has this pet been at our facility before?
+          - generic [ref=f1e374]:
+            - generic [ref=f1e375]:
+              - generic [ref=f1e376]: "Yes"
+              - combobox "Selected Yes. Has this pet been at our facility before?" [ref=f1e378]
+            - img "open" [ref=f1e380]
+        - generic [ref=f1e383]:
+          - paragraph [ref=f1e386]: Doctor
+          - textbox "Doctor" [ref=f1e389]:
+            - /placeholder: ""
+        - generic [ref=f1e391]:
+          - paragraph [ref=f1e394]: Clinic Name
+          - textbox "Clinic Name" [ref=f1e397]:
+            - /placeholder: ""
+    - generic [ref=f1e400] [cursor=pointer]:
+      - checkbox "I confirm the information is correct."
+      - paragraph [ref=f1e405]: I confirm the information is correct.
+    - button [ref=f1e408] [cursor=pointer]:
+      - paragraph [ref=f1e412]: Submit

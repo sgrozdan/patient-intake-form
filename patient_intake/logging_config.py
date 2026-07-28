@@ -43,6 +43,16 @@ def configure_logging() -> None:
         )
 
 
+def get_logger(name: str) -> logging.Logger:
+    """Return a logger inside the application's namespace.
+
+    Do not build the name from __name__ in the entry point: Streamlit executes
+    app.py as __main__, so the records would land outside the namespace
+    configure_logging() sets up and be dropped.
+    """
+    return logging.getLogger(f"{LOGGER_NAME}.{name}")
+
+
 def mask(value: str) -> str:
     """Shorten a credential for logging: enough to recognise, not to reuse."""
     if not value:

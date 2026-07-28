@@ -73,6 +73,17 @@ def submit(monkeypatch, sample_species_map, sample_breed_map, sample_sex_map):
     return _submit
 
 
+def test_inputs_are_collected_by_a_form():
+    """Loose text inputs only reach the server on blur, which breaks autofill."""
+    from pathlib import Path
+
+    source = Path(app.__file__).read_text()
+
+    assert 'with st.form("intake_form"):' in source
+    assert 'st.form_submit_button("Submit")' in source
+    assert 'st.button("Submit")' not in source
+
+
 def test_valid_submission_sends_the_email(submit, quiet_streamlit):
     """The happy path reaches both the API and the email."""
     api = submit()
