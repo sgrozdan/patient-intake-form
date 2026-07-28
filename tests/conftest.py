@@ -1,19 +1,9 @@
 """Pytest fixtures for patient intake form tests."""
 
-import os
-
 import pytest
 
-
-def pytest_configure(config):
-    """Provide the config the package resolves at import time.
-
-    patient_intake.config reads these when the module is imported and raises
-    without them, so they must be set before any test module is collected.
-    """
-    os.environ["SERVICE_TOKEN"] = "test-service-token"
-    os.environ["CATALOGUE_URL"] = "http://example.test/catalogues"
-    os.environ["PATIENT_ADD_URL"] = "http://example.test/patient_add"
+# The env vars patient_intake.config resolves at import time come from
+# [tool.pytest.ini_options] env in pyproject.toml, via pytest-env.
 
 
 class _NoSecrets:

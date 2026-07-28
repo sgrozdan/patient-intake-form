@@ -16,6 +16,7 @@ PyMuPDF = "^1.25.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-cov = "^6.0.0"
+pytest-env = "^1.1.0"
 ruff = "^0.8.0"
 mypy = "^1.13.0"
 types-requests = "^2.32.0"
@@ -44,3 +45,14 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --cov=patient_intake"
+# Default config so config.py imports cleanly under test without real secrets.
+env = [
+    "SERVICE_TOKEN=test-token",
+    "CATALOGUE_URL=http://localhost/catalogue",
+    "PATIENT_ADD_URL=http://localhost/patient",
+    "SMTP_SERVER=localhost",
+    "SMTP_PORT=25",
+    "SENDER_EMAIL=sender@example.com",
+    "SENDER_PASSWORD=test-password",
+    "RECIPIENT_EMAIL=recipient@example.com",
+]
