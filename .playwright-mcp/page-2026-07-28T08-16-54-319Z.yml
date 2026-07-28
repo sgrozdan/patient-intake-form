@@ -1,0 +1,14 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e6]:
+    - button [ref=f3e11] [cursor=pointer]
+  - generic [ref=f3e15]:
+    - heading "Please solve this to begin:" [level=3] [ref=f3e21]
+    - paragraph [ref=f3e27]:
+      - strong [ref=f3e28]: 6 + 8 = ?
+    - generic [ref=f3e30]:
+      - paragraph [ref=f3e33]: "Answer:"
+      - textbox "Answer:" [active] [ref=f3e36]:
+        - /placeholder: ""
+        - text: "14"
+    - button [ref=f3e39] [cursor=pointer]:
+      - paragraph [ref=f3e43]: Verify CAPTCHA

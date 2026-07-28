@@ -16,6 +16,11 @@ logger = get_logger("app")
 
 def main():
     """Main entry point for the Streamlit application."""
+    # Must precede every other Streamlit call. The default centred layout is
+    # narrow enough that two columns of fields squeeze the date selectboxes
+    # until they clip their own values.
+    st.set_page_config(page_title="Patient Intake Form", layout="wide")
+
     configure_logging()
 
     # CAPTCHA check first
@@ -75,8 +80,7 @@ def main():
                     zip_code = st.text_input("Zip Code:")
 
                 st.markdown("**Owner's Date of Birth**")
-                # The year needs room for four digits; day and month need two.
-                dob_col1, dob_col2, dob_col3 = st.columns([1, 1, 2])
+                dob_col1, dob_col2, dob_col3 = st.columns(3)
                 with dob_col1:
                     owner_day = st.selectbox("Day", list(range(1, 32)))
                 with dob_col2:
@@ -102,7 +106,7 @@ def main():
                 breed_non_listed = st.text_input("Breed (if not listed):")
                 color = st.text_input("Color")
                 st.markdown("**Patient's Date of Birth**")
-                dob_col1, dob_col2, dob_col3 = st.columns([1, 1, 2])
+                dob_col1, dob_col2, dob_col3 = st.columns(3)
                 with dob_col1:
                     day = st.selectbox("Day", list(range(1, 32)), key="pet_day")
                 with dob_col2:
