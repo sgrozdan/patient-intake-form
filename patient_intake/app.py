@@ -13,40 +13,43 @@ from patient_intake.pdf_generator import fill_pdf_with_fitz
 # Not getLogger(__name__): Streamlit runs this file as __main__.
 logger = get_logger("app")
 
+# Streamlit's centred layout caps the content at ~736px, which squeezes two
+# columns of fields until the date selectboxes clip their own values. The wide
+# layout has no cap at all and sprawls on a large screen, so set one in between.
+CONTENT_MAX_WIDTH = "960px"
+
+
+def _apply_content_width() -> None:
+    """Bound the content width, wider than centred but narrower than wide."""
+    st.markdown(
+        f"""
+        <style>
+        [data-testid="stMainBlockContainer"], .block-container {{
+            max-width: {CONTENT_MAX_WIDTH};
+            margin-left: auto;
+            margin-right: auto;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def main():
     """Main entry point for the Streamlit application."""
-    # Must precede every other Streamlit call. The default centred layout is
-    # narrow enough that two columns of fields squeeze the date selectboxes
-    # until they clip their own values.
+    # Must precede every other Streamlit call. The wide layout drops Streamlit's
+    # content cap, which _apply_content_width() then replaces with a wider but
+    # still bounded one.
     st.set_page_config(page_title="Patient Intake Form", layout="wide")
 
     configure_logging()
+    _apply_content_width()
 
     # CAPTCHA check first
     check_captcha()
 
     # Fetch reference data
     species_map, breed_map, sex_map = fetch_reference_data()
-
-    # === UI FORM ===
-    st.markdown(
-        """
-    <style>
-    .responsive-box {
-        width: 100%;
-        max-width: 480px;
-        padding: 1rem;
-        border: 1px solid #CCC;
-        border-radius: 10px;
-        background-color: #f9f9f9;
-        margin: 0 auto;
-    }
-    @media screen and (max-width: 768px) { .responsive-box { max-width: 100%; } }
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
 
     st.header("Patient Intake Form")
 
