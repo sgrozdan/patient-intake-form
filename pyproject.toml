@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "patient-intake-form"
-version = "0.1.0"
+version = "0.1.2"
 description = "Veterinary patient intake form application for Animal Eye Iowa"
 authors = ["Animal Eye Iowa"]
 readme = "README.md"

@@ -2,6 +2,56 @@
 
 import pytest
 
+# The env vars patient_intake.config resolves at import time come from
+# [tool.pytest.ini_options] env in pyproject.toml, via pytest-env.
+
+
+class _NoSecrets:
+    """Stand-in for st.secrets that behaves like a missing secrets.toml."""
+
+    def _fail(self, *args, **kwargs):
+        raise FileNotFoundError("No secrets.toml in tests")
+
+    __getitem__ = _fail
+    __getattr__ = _fail
+    __contains__ = _fail
+    get = _fail
+
+
+@pytest.fixture(autouse=True)
+def no_secrets_file(monkeypatch):
+    """Keep tests independent of a developer's local .streamlit/secrets.toml."""
+    from patient_intake import config
+
+    monkeypatch.setattr(config.st, "secrets", _NoSecrets())
+
+
+@pytest.fixture
+def email_env(monkeypatch):
+    """Set a complete email env var configuration without SMTP_LOGIN."""
+    monkeypatch.setenv("SMTP_SERVER", "email-smtp.us-east-1.amazonaws.com")
+    monkeypatch.setenv("SMTP_PORT", "587")
+    monkeypatch.setenv("SENDER_EMAIL", "sender@example.com")
+    monkeypatch.setenv("SENDER_PASSWORD", "secret")
+    monkeypatch.setenv("RECIPIENT_EMAIL", "recipient@example.com")
+    monkeypatch.delenv("SMTP_LOGIN", raising=False)
+    return monkeypatch
+
+
+@pytest.fixture
+def no_email_env(monkeypatch):
+    """Remove every email env var so the secrets fallback is used."""
+    for name in (
+        "SMTP_SERVER",
+        "SMTP_PORT",
+        "SENDER_EMAIL",
+        "SENDER_PASSWORD",
+        "RECIPIENT_EMAIL",
+        "SMTP_LOGIN",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    return monkeypatch
+
 
 @pytest.fixture
 def sample_form_data():
@@ -49,6 +99,20 @@ def sample_extra_fields():
         "doctor": "Dr. Smith",
         "clinic_name": "Main St Vet",
     }
+
+
+@pytest.fixture
+def sample_fixtures(
+    sample_form_data, sample_extra_fields, sample_species_map, sample_breed_map, sample_sex_map
+):
+    """The form data arguments shared by the email and PDF entry points."""
+    return (
+        sample_form_data,
+        sample_extra_fields,
+        sample_species_map,
+        sample_breed_map,
+        sample_sex_map,
+    )
 
 
 @pytest.fixture

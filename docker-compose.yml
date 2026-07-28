@@ -18,9 +18,12 @@ services:
       - PATIENT_ADD_URL=${PATIENT_ADD_URL}
       - SMTP_SERVER=${SMTP_SERVER}
       - SMTP_PORT=${SMTP_PORT}
+      - SMTP_LOGIN=${SMTP_LOGIN:-}
       - SENDER_EMAIL=${SENDER_EMAIL}
       - SENDER_PASSWORD=${SENDER_PASSWORD}
       - RECIPIENT_EMAIL=${RECIPIENT_EMAIL}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SMTP_DEBUG=${SMTP_DEBUG:-}
     env_file:
       - .env
     restart: unless-stopped

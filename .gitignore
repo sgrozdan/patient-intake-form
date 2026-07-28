@@ -25,7 +25,7 @@ eggs/
 secrets.env
 
 # Streamlit
-.streamlit/secrets.toml
+**/.streamlit/secrets.toml
 
 # Data
 files/data.json
@@ -43,3 +43,8 @@ secret.txt
 .claude
 
 .DS_Store
+
+# Playwright MCP artifacts
+.playwright-mcp/
+*.png
+!templates/*.png
